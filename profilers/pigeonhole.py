@@ -25,7 +25,7 @@ def approximate_match(pattern, text, max_allowed_mismatches):
                 if pattern[index_value] != text[match_position - start + index_value]:
                     mismatch_count += 1  # we've encountered a mismatch
                     if mismatch_count > max_allowed_mismatches:
-                        break  # This partition of the pattern won't yield appromximate matches within allowance
+                        break  # This partition of the pattern won't yield approximate matches within allowance
             for suffix_index in range(finish, pattern_length):
                 if pattern[suffix_index] != text[match_position - start + suffix_index]:
                     mismatch_count += 1
@@ -34,4 +34,5 @@ def approximate_match(pattern, text, max_allowed_mismatches):
 
             if mismatch_count <= max_allowed_mismatches:
                 all_matches.add(match_position - start)
+    # TODO: do [text[position: position+len(pattern)] for position in all_matches]
     return list(all_matches)

@@ -13,7 +13,7 @@ def alphabet_index(c, alphabet=None):
     Returns the index of the given character in the English alphabet, counting from 0.
     """
     if alphabet is None:
-        alphabet = {b'A': 0, b'C': 1, b'G': 2, b'T': 3}
+        alphabet = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
     # TODO: What if we encounter a part of the sequence that isn't A,C,G or T ?
     return alphabet[c]
 
@@ -79,11 +79,11 @@ def get_bad_character_table(S):
     a much larger size than non-constant-time solutions.
     """
     if len(S) == 0:
-        return [[] for a in range(26)]
-    R = [[-1] for a in range(26)]
-    alpha = [-1 for a in range(26)]
+        return [[] for a in range(4)]
+    R = [[-1] for a in range(4)]
+    alpha = [-1 for a in range(4)]
     for i, c in enumerate(S):
-        alpha[alphabet_index(c)] = i
+        alpha[alphabet_index(c=c)] = i
         for j, a in enumerate(alpha):
             R[j].append(a)
     return R
