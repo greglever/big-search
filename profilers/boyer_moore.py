@@ -8,11 +8,14 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 
-def alphabet_index(c):
+def alphabet_index(c, alphabet=None):
     """
     Returns the index of the given character in the English alphabet, counting from 0.
     """
-    return ord(c.lower()) - 97  # 'a' is ASCII character 97
+    if alphabet is None:
+        alphabet = {b'A': 0, b'C': 1, b'G': 2, b'T': 3}
+    # TODO: What if we encounter a part of the sequence that isn't A,C,G or T ?
+    return alphabet[c]
 
 
 def match_length(S, idx1, idx2):
@@ -66,7 +69,7 @@ def fundamental_preprocess(S):
     return z
 
 
-def bad_character_table(S):
+def get_bad_character_table(S):
     """
     Generates R for S, which is an array indexed by the position of some character c in the
     English alphabet. At that index in R is an array of length |S|+1, specifying for each
@@ -86,7 +89,7 @@ def bad_character_table(S):
     return R
 
 
-def good_suffix_table(S):
+def get_good_suffix_table(S):
     """
     Generates L for S, an array used in the implementation of the strong good suffix rule.
     L[i] = k, the largest position in S such that S[i:] (the suffix of S starting at i) matches
@@ -107,7 +110,7 @@ def good_suffix_table(S):
     return L
 
 
-def full_shift_table(S):
+def get_full_shift_table(S):
     """
     Generates F for S, an array used in a special case of the good suffix rule in the Boyer-Moore
     string search algorithm. F[i] is the length of the longest suffix of S[i:] that is also a
@@ -123,7 +126,7 @@ def full_shift_table(S):
     return F
 
 
-def string_search(P, T):
+def string_search(pattern, text):
     """
     Implementation of the Boyer-Moore string search algorithm. This finds all occurrences of P
     in T, and incorporates numerous ways of pre-processing the pattern to determine the optimal
@@ -131,35 +134,35 @@ def string_search(P, T):
     sublinear) time, where m is the length of T. This implementation performs a case-insensitive
     search on ASCII alphabetic characters, spaces not included.
     """
-    if len(P) == 0 or len(T) == 0 or len(T) < len(P):
+    if len(pattern) == 0 or len(text) == 0 or len(text) < len(pattern):
         return []
 
     matches = []
 
     # Preprocessing
-    R = bad_character_table(P)
-    L = good_suffix_table(P)
-    F = full_shift_table(P)
+    bad_character_table = get_bad_character_table(pattern)
+    good_suffix_table = get_good_suffix_table(pattern)
+    full_shift_table = get_full_shift_table(pattern)
 
-    k = len(P) - 1      # Represents alignment of end of P relative to T
+    k = len(pattern) - 1      # Represents alignment of end of P relative to T
     previous_k = -1     # Represents alignment in previous phase (Galil's rule)
-    while k < len(T):
-        i = len(P) - 1  # Character to compare in P
+    while k < len(text):
+        i = len(pattern) - 1  # Character to compare in P
         h = k           # Character to compare in T
-        while i >= 0 and h > previous_k and P[i] == T[h]:   # Matches starting from end of P
+        while i >= 0 and h > previous_k and pattern[i] == text[h]:   # Matches starting from end of P
             i -= 1
             h -= 1
         if i == -1 or h == previous_k:  # Match has been found (Galil's rule)
-            matches.append(k - len(P) + 1)
-            k += len(P)-F[1] if len(P) > 1 else 1
+            matches.append(k - len(pattern) + 1)
+            k += len(pattern) - full_shift_table[1] if len(pattern) > 1 else 1
         else:   # No match, shift by max of bad character and good suffix rules
-            char_shift = i - R[alphabet_index(T[h])][i]
-            if i+1 == len(P):   # Mismatch happened on first attempt
+            char_shift = i - bad_character_table[alphabet_index(text[h])][i]
+            if i+1 == len(pattern):   # Mismatch happened on first attempt
                 suffix_shift = 1
-            elif L[i+1] == -1:   # Matched suffix does not appear anywhere in P
-                suffix_shift = len(P) - F[i+1]
+            elif good_suffix_table[i+1] == -1:   # Matched suffix does not appear anywhere in P
+                suffix_shift = len(pattern) - full_shift_table[i + 1]
             else:               # Matched suffix appears in P
-                suffix_shift = len(P) - L[i+1]
+                suffix_shift = len(pattern) - good_suffix_table[i + 1]
             shift = max(char_shift, suffix_shift)
             previous_k = k if shift >= i+1 else previous_k  # Galil's rule
             k += shift

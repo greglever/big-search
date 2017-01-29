@@ -42,5 +42,5 @@ LOG = logging.getLogger(__name__)
 def test_boyer_moore():
     pattern = 'TGGATGTGAAATGAGTCAAG'
     testText = 'CGCTAAAAGCTAGAGCTACGCGACGATCAGCACTACGTGGATGTGAAATGAGTCAAGCGCGCTAGACGACTACGACTAGCAGCATCGATCGATCGATCG'
-    result = string_search(P=pattern, T=testText)
+    result = string_search(pattern=pattern, text=testText)
     assert result == [37]

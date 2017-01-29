@@ -27,7 +27,7 @@ def profile_genome_search():
     pattern = b'TGGATGTGAAATGAGTCAAG'
     testText = b'CGCTAAAAGCTAGAGCTACGCGACGATCAGCACTACGTGGATGTGAAATGAGTCAAGCGCGCTAGACGACTACGACTAGCAGCATCGATCGATCGATCG'
     maxmismatch = 3
-    string_search(P=pattern, t=testText)
+    string_search(pattern=pattern, text=testText)
     # TODO: (Greg) Implementation
 
 
