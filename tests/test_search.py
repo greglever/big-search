@@ -16,12 +16,12 @@ from profilers.pigeonhole import approximate_match
 
 LOG = logging.getLogger(__name__)
 
-# try:
-#     GENOME_PATH = os.path.join(os.path.dirname(__file__), 'data/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz')
-#     assert os.path.exists(GENOME_PATH)
-# except AssertionError:
-#     LOG.error('Human reference genome file not found. Download the human reference genome')
-#     raise
+try:
+    GENOME_PATH = os.path.join(os.path.dirname(__file__), 'data/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz')
+    assert os.path.exists(GENOME_PATH)
+except AssertionError:
+    LOG.error('Human reference genome file not found. Download the human reference genome')
+    raise
 
 
 # @pytest.mark.parametrize(("pattern", 'mismatches', 'exphits'), [
