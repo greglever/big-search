@@ -7,10 +7,12 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from .boyer_moore import string_search
+import sys
+
+from profilers.pigeonhole import approximate_match
 
 
-def profile_genome_search():
+def profile_genome_search(pattern, max_allowed_mismatches):
     """
     Profile the sort bucket step
     
@@ -23,16 +25,18 @@ def profile_genome_search():
     see if we see a full occurrence of P with up to the maximum number 
     of differences allowed. 
     """
-    genome_file = 'Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz'
-    pattern = b'TGGATGTGAAATGAGTCAAG'
-    testText = b'CGCTAAAAGCTAGAGCTACGCGACGATCAGCACTACGTGGATGTGAAATGAGTCAAGCGCGCTAGACGACTACGACTAGCAGCATCGATCGATCGATCG'
-    maxmismatch = 3
-    string_search(pattern=pattern, text=testText)
+    # genome_file = 'Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz'
+    testText = 'CGCTAAAAGCTAGAGCTACGCGACGATCAGCACTACGTGGATGTGAAATGAGTCAAGCGCGCTAGACGACTACGACTAGCAGCATCGATTGGATGGGAAAGGAGTCAAGCGATCGATCG'
+    print(approximate_match(pattern=pattern, text=testText, max_allowed_mismatches=max_allowed_mismatches))
     # TODO: (Greg) Implementation
 
 
-def main():
-    profile_genome_search()
-
 if __name__ == '__main__':
-    main()
+    # pattern = 'TGGATGTGAAATGAGTCAAG'
+    if len(sys.argv) < 3:
+        print("Usage: profile_search.py [pattern] [maximum allowed number of mismatches]")
+        print("You must supply pattern and maximium allowed mismatch arguments to profile_search.py ")
+        exit()
+    pattern = sys.argv[1]
+    max_allowed_mismatches = int(sys.argv[2])
+    profile_genome_search(pattern=pattern, max_allowed_mismatches=max_allowed_mismatches)

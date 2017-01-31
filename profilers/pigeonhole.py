@@ -35,4 +35,6 @@ def approximate_match(pattern, text, max_allowed_mismatches):
             if mismatch_count <= max_allowed_mismatches:
                 all_matches.add(match_position - start)
     # TODO: do [text[position: position+len(pattern)] for position in all_matches]
-    return list(all_matches)
+    for position in list(all_matches):
+        print(position)
+        print(text[position: position+len(pattern)])
