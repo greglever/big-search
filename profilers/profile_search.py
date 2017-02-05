@@ -9,8 +9,6 @@ from __future__ import unicode_literals
 
 import sys
 
-from profilers.pigeonhole import approximate_match
-
 
 def profile_genome_search(pattern, max_allowed_mismatches):
     """
@@ -27,7 +25,6 @@ def profile_genome_search(pattern, max_allowed_mismatches):
     """
     # genome_file = 'Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz'
     testText = 'CGCTAAAAGCTAGAGCTACGCGACGATCAGCACTACGTGGATGTGAAATGAGTCAAGCGCGCTAGACGACTACGACTAGCAGCATCGATTGGATGGGAAAGGAGTCAAGCGATCGATCG'
-    print(approximate_match(pattern=pattern, text=testText, max_allowed_mismatches=max_allowed_mismatches))
     # TODO: (Greg) Implementation
 
 

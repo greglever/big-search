@@ -1,4 +1,5 @@
 tests/data/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+tests/data/Homo_sapiens.GRCh38.dna.primary_assembly.fa
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
