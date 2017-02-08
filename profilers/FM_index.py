@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
@@ -13,8 +14,29 @@ from itertools import combinations
 def suffixArray(s):
     ''' Given T return suffix array SA(T).  Uses "sorted"
         function for simplicity, which is probably very slow. '''
-    satups = sorted([(s[i:], i) for i in xrange(0, len(s))])
-    return map(lambda x: x[1], satups) # extract, return just offsets
+    suffix_array = [(s[i:], i) for i in xrange(0, len(s))]
+    """
+    For an example Text ACGTTGCA the suffix array would be the following:
+    [('ACGTTGCA', 0),
+    ('CGTTGCA', 1),
+    ('GTTGCA', 2),
+    ('TTGCA', 3),
+    ('TGCA', 4),
+    ('GCA', 5),
+    ('CA', 6),
+    ('A', 7)]
+
+    which for the human reference genome will give 4.5*10^18 rows...
+    4,500,000,000,000,000,000.00
+
+    so 1,500,000,000 times as big as the human genome
+
+    np.save(file="./small_test_array", arr=np.ones([1, 3000000000]))
+    creates a file that is 22GB...
+    so 66,000,000,000 GB for all of them in total...
+    """
+    sorted_suffix_array = sorted(suffix_array)
+    return map(lambda x: x[1], sorted_suffix_array)  # extract, return just offsets
 
 
 def bwtFromSa(t, sa=None):
@@ -68,7 +90,7 @@ class FmCheckpoints(object):
         return self.cps[c][i // self.cpIval] + nocc
 
 
-class FmIndex():
+class FmIndex:
     ''' O(m) size FM Index, where checkpoints and suffix array samples are
         spaced O(1) elements apart.  Queries like count() and range() are
         O(n) where n is the length of the query.  Finding all k
@@ -93,9 +115,13 @@ class FmIndex():
     def __init__(self, t, cpIval=4, ssaIval=4):
         if t[-1] != '$':
             t += '$'  # add dollar if not there already
+        #TODO(Greg): Make sure there is a $ at the end of the reference genome
+
         # Get BWT string and offset of $ within it
         sa = suffixArray(t)
         self.bwt, self.dollarRow = bwtFromSa(t, sa)
+
+
         # Get downsampled suffix array, taking every 1 out of 'ssaIval'
         # elements w/r/t T
         self.ssa = self.downsampleSuffixArray(sa, ssaIval)
@@ -179,5 +205,3 @@ class FmIndex():
     #             (u'CA', [51, 42, 17, 45, 7, 32, 20])
     #             (u'CT', [39])
     #             (u'AT', [29, 43, 18, 46, 8, 33, 21])
-
-
