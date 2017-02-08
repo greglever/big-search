@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
@@ -34,6 +33,19 @@ def suffixArray(s):
     np.save(file="./small_test_array", arr=np.ones([1, 3000000000]))
     creates a file that is 22GB...
     so 66,000,000,000 GB for all of them in total...
+
+    In [2]: from pysam import FastxFile
+
+    In [3]: with FastxFile("./tests/data/Homo_sapiens.GRCh38.dna.primary_assembly.fa") as fh:
+       ...:     for entry in fh:
+       ...:         print(len(entry.sequence))
+
+       In [1]: np.savez_compressed('HOW_BIG_IS_THIS', np.array([[[1]*750000000, [2]*750000000, [3]*750000000, [4]*
+   ...: 750000000]]).astype(dtype=np.int8))
+
+    results in a 2.8M file
+
+
     """
     sorted_suffix_array = sorted(suffix_array)
     return map(lambda x: x[1], sorted_suffix_array)  # extract, return just offsets
