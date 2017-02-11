@@ -44,9 +44,22 @@ def suffixArray(s):
    ...: 750000000]]).astype(dtype=np.int8))
 
     results in a 2.8M file
-
-
     """
+    # TODO: run the above loop once and add up each of the lengths to figure out how long the total
+    # TODO: length needs to be of the numpy array we want to store the first string in
+    # TODO: Then construct a dictionary of letter_to_int_map = {"a": 1, "c": 2, "g": 3, "t": 4}
+    # TODO: and then address it with letter_to_int_map.get(letter, 0) for letter in sequence
+    # TODO: doing something like:
+    """
+                for index_value, letter in enumerate(sequence):
+                    sequence_array[0, index_value] = letter_to_int_map.get(letter, 0)
+    """
+    # TODO: then we can see how feasible it is to store this numpy matrix to disk and then read.
+    # TODO: Alternatively we could investigate just ignoring anything that isn't A,C,G or T initially
+    # TODO: and then have a large integer for each row, ie. 12431124312431423413212.......123414231
+    # TODO: In addition, look at lexicographical sorting in numpy for rows of integers
+
+
     sorted_suffix_array = sorted(suffix_array)
     return map(lambda x: x[1], sorted_suffix_array)  # extract, return just offsets
 
