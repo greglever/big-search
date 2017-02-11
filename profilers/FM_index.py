@@ -10,10 +10,7 @@ from __future__ import unicode_literals
 from itertools import combinations
 
 
-def suffixArray(s):
-    ''' Given T return suffix array SA(T).  Uses "sorted"
-        function for simplicity, which is probably very slow. '''
-    suffix_array = [(s[i:], i) for i in xrange(0, len(s))]
+def preprocess_reference_genome():
     """
     For an example Text ACGTTGCA the suffix array would be the following:
     [('ACGTTGCA', 0),
@@ -40,10 +37,22 @@ def suffixArray(s):
        ...:     for entry in fh:
        ...:         print(len(entry.sequence))
 
+
+
        In [1]: np.savez_compressed('HOW_BIG_IS_THIS', np.array([[[1]*750000000, [2]*750000000, [3]*750000000, [4]*
    ...: 750000000]]).astype(dtype=np.int8))
 
     results in a 2.8M file
+
+    Make sure to ignore the Ns
+    the models for both centromeres and telomeres are rather poor
+    so they just consist of a run of Ns.
+
+    OVERARCHING QUESTIONS:
+    (*) How do we account for the fact that we may have incorrect matches (or some value of k mismatches)
+    across regions of N centromeres and telomeres ?
+    (*) Can we speed up numpy roll using the suggestion on page 144 of High Performance Python ?
+
     """
     # TODO: run the above loop once and add up each of the lengths to figure out how long the total
     # TODO: length needs to be of the numpy array we want to store the first string in
@@ -58,10 +67,160 @@ def suffixArray(s):
     # TODO: Alternatively we could investigate just ignoring anything that isn't A,C,G or T initially
     # TODO: and then have a large integer for each row, ie. 12431124312431423413212.......123414231
     # TODO: In addition, look at lexicographical sorting in numpy for rows of integers
+    from pysam import FastxFile
+    import numpy as np
+    import re
+
+    total_known_occurences = 0
+    with FastxFile("./tests/data/Homo_sapiens.GRCh38.dna.primary_assembly.fa") as fh:
+        print(total_known_occurences)
+        for entry in fh:
+            total_known_occurences += len(re.findall("A", entry.sequence))
+            total_known_occurences += len(re.findall("C", entry.sequence))
+            total_known_occurences += len(re.findall("G", entry.sequence))
+            total_known_occurences += len(re.findall("T", entry.sequence))
+            print(total_known_occurences)
+
+    # 2,945,849,067 instance of A, C, G, T
+
+    sequence_array = np.empty([1, total_known_occurences+1], dtype=np.int8)
+    letter_to_int_map = {"A": 1, "C": 2, "G": 3, "T": 4}
+
+    # The 0 will act as a $ character when lexocographically sorting (the $ would have the lowest ordering)
+    sequence_array[0, 0] = 0
+
+    with FastxFile("./tests/data/Homo_sapiens.GRCh38.dna.primary_assembly.fa") as fh:
+        index_value = 1
+        for entry in fh:
+            print(entry.name)
+            for letter in entry.sequence:
+                mapped_int = letter_to_int_map.get(letter, 0)
+                if mapped_int > 0:
+                    sequence_array[0, index_value] = mapped_int
+                    index_value += 1
+
+    np.savez_compressed("./first_row", sequence_array)
+    # 776M...
+
+    # index_value = 0
+    # for letter in some_string:
+    #     mapped_int = letter_to_int_map.get(letter, 0)
+    #     if mapped_int > 0:
+    #         sequence_array[0, index_value] = mapped_int
+    #         index_value += 1
+    some_array = np.array([[1, 2, 3]], dtype=np.int8)
+    print(some_array, 0)
+    for shift_value in xrange(-1, -some_array.shape[1], -1):
+        print(np.roll(a=some_array, shift=shift_value)[:, :shift_value], -shift_value)
 
 
+# for n in ns[:-1]:
+#     cls1 = np.roll(cls, int(-n))
+#     inds = np.lexsort((cls1, cls))
+#     result = np.logical_or(np.diff(cls[inds]), np.diff(cls1[inds]))
+#     cls[inds[0]] = 0
+#     cls[inds[1:]] = np.cumsum(result)
+
+
+# text="CAT"
+# cat_suffix_array = map(lambda x: x[1], sorted([(text[i:], i) for i in xrange(0, len(text))]))
+# bw = []
+# dollarRow = None
+# for si in cat_suffix_array:
+#     if si == 0:
+#         dollarRow = len(bw)
+#         bw.append('$')
+#     else:
+#         bw.append(text[si - 1])
+# print((''.join(bw), dollarRow))
+
+
+def suffix_array_np(txt):
+    import numpy as np
+    from math import ceil
+    from math import log
+    if not txt:
+        return []
+    txt += chr(0)
+
+    equivalence = {t: i for i, t in enumerate(sorted(set(txt)))}
+    cls = np.array([equivalence[t] for t in txt])
+
+    # ns = 2**np.arange(ceil(log(len(txt), 2))).astype(dtype=int)
+    ns = 2**np.arange(ceil(log(cls.shape[0], 2))).astype(dtype=int)
+
+    for n in ns[:-1]:
+        cls1 = np.roll(cls, -n)
+        inds = np.lexsort((cls1, cls))
+        result = np.logical_or(np.diff(cls[inds]), np.diff(cls1[inds]))
+
+        cls[inds[0]] = 0
+        cls[inds[1:]] = np.cumsum(result)
+
+    cls1 = np.roll(cls, ns[-1])
+    # return np.lexsort((cls1, cls))[1:].tolist()
+    return np.lexsort((cls1, cls))[1:]
+
+
+def get_suffix_array(text_array):
+    # TODO: could we memory map this...?
+    # TODO: Potentially run this overnight in the background, outside of pycharm...
+    import numpy as np
+    from math import ceil
+    from math import log
+    ns = 2**np.arange(ceil(log(text_array.shape[0], 2))).astype(dtype=int)
+
+    for n in ns[:-1]:
+        cls1 = np.roll(text_array, -n)
+        inds = np.lexsort((cls1, text_array))
+        result = np.logical_or(np.diff(text_array[inds]), np.diff(cls1[inds]))
+
+        text_array[inds[0]] = 0
+        text_array[inds[1:]] = np.cumsum(result)
+
+    cls1 = np.roll(text_array, ns[-1])
+    # return np.lexsort((cls1, cls))[1:].tolist()
+    return np.lexsort((cls1, text_array))[1:]
+
+# suffix_array_to_save = get_suffix_array(text_array=sequence_for_suffix_array_calc)
+# print("GOT SUFFIX ARRAY ! Now saving...")
+# np.savez_compressed("./suffix_array", suffix_array_to_save)
+
+"""
+TODO:       - read in the sequence from npz compressed
+            - reshape it to just be multiple rows
+
+
+
+            - read this into get_suffix_array above
+            - save the resulting suffix_array to disk
+
+            IN THE MEANTIME...
+            we need to verify (with SMALLER sequences)
+            that our numpy refactoring does the same job as the list versions
+"""
+
+
+def suffixArray(s):
+    ''' Given T return suffix array SA(T).  Uses "sorted"
+        function for simplicity, which is probably very slow. '''
+    suffix_array = [(s[i:], i) for i in xrange(0, len(s))]
     sorted_suffix_array = sorted(suffix_array)
     return map(lambda x: x[1], sorted_suffix_array)  # extract, return just offsets
+
+
+def bwt_from_suffix_array_np(suffix_array, text_array):
+    import numpy as np
+    dollar_row = 0
+    bwt_array = np.empty(suffix_array.shape[0])
+    for index_value in xrange(suffix_array.shape[0]):
+        suffix_i = suffix_array[index_value]
+        if suffix_i == 0:
+            dollar_row = index_value
+            bwt_array[index_value] = 0
+        else:
+            bwt_array[index_value] = text_array[index_value-1]
+    return bwt_array, dollar_row
 
 
 def bwtFromSa(t, sa=None):
